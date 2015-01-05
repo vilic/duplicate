@@ -13,6 +13,8 @@ npm install duplicate --save-dev
 ## Usage
 
 ```javascript
+var duplicate = require('duplicate');
+
 duplicate({
     src: [
         'scripts/**/*.js',
@@ -28,7 +30,7 @@ duplicate({
 ## API Definitions
 
 ```typescript
-interface {
+interface IOptions {
     /** refer to minimatch */
     src: string | string[];
     dest: string;
@@ -39,5 +41,7 @@ interface {
     ignored?: any;
 }
 
-function duplicate(options: IOptions): void;
+declare function duplicate(options: IOptions): void;
+
+declare module duplicate { }
 ```
