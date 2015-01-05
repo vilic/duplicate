@@ -1,0 +1,33 @@
+{
+  "name": "duplicate",
+  "version": "0.1.0",
+  "description": "Copy (and keep watching) some contents to another directory for certain purpose.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vilic/duplicate"
+  },
+  "keywords": [
+    "gulp",
+    "grunt",
+    "copy",
+    "sync",
+    "watch",
+    "duplicate"
+  ],
+  "author": "VILIC VANE",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vilic/duplicate/issues"
+  },
+  "homepage": "https://github.com/vilic/duplicate",
+  "dependencies": {
+    "chokidar": "^0.12.5",
+    "fs-extra": "^0.13.0",
+    "glob": "^4.3.2",
+    "minimatch": "^2.0.1"
+  }
+}
