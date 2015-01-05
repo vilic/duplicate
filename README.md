@@ -23,14 +23,14 @@ API Definitions
 
 ```typescript
 interface {
-	/** refer to minimatch */
-	src: string | string[];
-	dest: string;
-	/**
-	 * default to /[\/\\](?:\.|node_modules(?=[\/\\]|$))/ 
-	 * refer to https://github.com/es128/anymatch
-	 */
-	ignored?: any;
+    /** refer to minimatch */
+    src: string | string[];
+    dest: string;
+    /**
+     * default to /[\/\\](?:\.|node_modules(?=[\/\\]|$))/ 
+     * refer to https://github.com/es128/anymatch
+     */
+    ignored?: any;
 }
 
 

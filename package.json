@@ -1,6 +1,6 @@
 {
   "name": "duplicate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Copy (and keep watching) some contents to another directory for certain purpose.",
   "main": "index.js",
   "scripts": {
