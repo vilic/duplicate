@@ -4,6 +4,12 @@ This tool is for keeping specific files of two directories synchronized. You may
 
 It will copy all matching files to dest directory before watching.
 
+## Install
+
+```sh
+npm install duplicate --save-dev
+```
+
 ## Usage
 
 ```javascript
