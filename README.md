@@ -39,6 +39,5 @@ interface {
     ignored?: any;
 }
 
-
 function duplicate(options: IOptions): void;
 ```
