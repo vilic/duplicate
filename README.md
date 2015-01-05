@@ -25,7 +25,7 @@ duplicate({
 });
 ```
 
-API Definitions
+## API Definitions
 
 ```typescript
 interface {
