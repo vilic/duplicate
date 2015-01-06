@@ -1,6 +1,8 @@
 # Duplicate
 
-This tool is for keeping specific files of two directories synchronized. You may use it in Gulp or Grunt.
+This tool is for keeping specific files of two directories synchronized. You may use it in
+[Gulp](https://github.com/gulpjs/gulp/blob/master/docs/getting-started.md#3-create-a-gulpfilejs-at-the-root-of-your-project)
+or [Grunt](http://gruntjs.com/creating-tasks#basic-tasks).
 
 It will copy all matching files to dest directory before watching.
 
