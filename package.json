@@ -1,6 +1,6 @@
 {
   "name": "duplicate",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Copy (and keep watching) some contents to another directory for certain purpose.",
   "main": "index.js",
   "scripts": {
@@ -25,9 +25,8 @@
   },
   "homepage": "https://github.com/vilic/duplicate",
   "dependencies": {
+    "anymatch": "^1.1.0",
     "chokidar": "^0.12.5",
-    "fs-extra": "^0.13.0",
-    "glob": "^4.3.2",
-    "minimatch": "^2.0.1"
+    "fs-extra": "^0.13.0"
   }
 }

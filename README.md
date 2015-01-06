@@ -31,14 +31,14 @@ duplicate({
 
 ```typescript
 interface IOptions {
-    /** refer to minimatch */
-    src: string | string[];
+    /** refer to https://github.com/es128/anymatch */
+    src: any;
     dest: string;
-    /**
-     * default to /[\/\\](?:\.|node_modules(?=[\/\\]|$))/ 
-     * refer to https://github.com/es128/anymatch
+    /** 
+     * default to /(?:^|[\/\\])(?:\.(?![\/\\]|$)|node_modules(?=[\/\\]|$))/,
+     * make sure path '.' will not be ignored.
      */
-    ignored?: any;
+    ignored?: RegExp | (path: string) => boolean;
 }
 
 declare function duplicate(options: IOptions): void;

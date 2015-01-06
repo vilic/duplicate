@@ -11,8 +11,7 @@
 var path = require('path');
 
 var fs = require('fs-extra');
-var glob = require('glob');
-var minimatch = require('minimatch');
+var anymatch = require('anymatch');
 var chokidar = require('chokidar');
 
 module.exports = function (options) {
@@ -23,19 +22,21 @@ module.exports = function (options) {
     var srcs = options.src;
     var dest = options.dest;
 
-    var ignored = options.ignored || /[\/\\](?:\.|node_modules(?=[\/\\]|$))/;
+    var ignored = options.ignored || /(?:^|[\/\\])(?:\.(?![\/\\]|$)|node_modules(?=[\/\\]|$))/;
 
     if (!(srcs instanceof Array)) {
         srcs = srcs ? [srcs] : [];
     }
 
-    for (var i = 0; i < srcs.length; i++) {
-        srcs[i] = path.normalize(srcs[i]);
-    }
-
     if (!srcs.length) {
         throw new Error('options.src required');
     }
+
+    srcs = srcs.map(function (src) {
+        return path.resolve(src);
+    });
+
+    var matcher = anymatch(srcs);
 
     if (typeof dest != 'string') {
         throw new Error('options.dest required');
@@ -44,55 +45,27 @@ module.exports = function (options) {
     var cwd = process.cwd();
     var watcherReady = false;
 
-    console.log('scanning files for initial copying...');
-    copyAll();
+    console.log('scanning files...');
 
-    function copyAll() {
-        var destFileHash = {};
-
-        nextSrc(srcs.concat());
-
-        function nextSrc(srcs) {
-            var src = srcs.shift();
-            if (!src) {
-                var destFiles = Object.keys(destFileHash);
-                console.log('copying all ' + destFiles.length + ' files...');
-
-                destFiles.forEach(function (filePath) {
-                    var relPath = path.relative(cwd, filePath);
-                    var destPath = path.join(dest, relPath);
-
-                    fs.copySync(filePath, destPath);
-                });
-
-                console.log('all files copied.');
-                console.log('initializing watching...');
-                watch();
-
-                return;
-            }
-
-            glob(src, function (err, files) {
-                files.forEach(function (file) {
-                    destFileHash[file] = null;
-                });
-
-                nextSrc(srcs);
-            });
-
-        }
-    }
+    var destFileMap = {};
+    
+    watch();
 
     function watch() {
         var watcher = chokidar.watch('.', {
-            ignored: ignored, 
+            ignored: ignored,
             persistent: true
         });
 
         watcher
             .on('add', function(filePath) {
-                if (watcherReady && matchSrc(filePath)) {
-                    processCopy(filePath);
+                if (matchSrc(filePath)) {
+                    if (watcherReady) {
+                        processCopy(filePath);
+                    } else {
+                        var destPath = path.join(dest, filePath);
+                        destFileMap[filePath] = destPath;
+                    }
                 }
             })
             .on('change', function(filePath) {
@@ -106,6 +79,7 @@ module.exports = function (options) {
                 }
             })
             .on('ready', function () {
+                copyAll();
                 watcherReady = true;
                 console.log('started watching.');
             })
@@ -114,10 +88,20 @@ module.exports = function (options) {
             });
     }
 
-    function matchSrc(filePath) {
-        return srcs.some(function (src) {
-            return minimatch(path.resolve(filePath), path.resolve(src));
+    function copyAll() {
+        var files = Object.keys(destFileMap);
+        console.log('copying ' + files.length + ' files...');
+
+        files.forEach(function (filePath) {
+            var destPath = destFileMap[filePath];
+            fs.copySync(filePath, destPath);
         });
+
+        console.log('all files copied.');
+    }
+
+    function matchSrc(filePath) {
+        return matcher(path.resolve(filePath));
     }
 
     function processCopy(filePath) {
@@ -161,7 +145,7 @@ module.exports = function (options) {
             if (!files.length) {
                 processDelete(dirPath, true);
             }
-        })
+        });
     }
 
     function logError(err) {
