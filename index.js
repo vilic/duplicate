@@ -14,6 +14,10 @@ var fs = require('fs-extra');
 var anymatch = require('anymatch');
 var chokidar = require('chokidar');
 
+var DEFAULT_VERSION_FILE = 'version.js';
+var DEFAULT_VERSION_VARIABLE = 'VERSION_STRING';
+var DEFAULT_INITIAL_VERSION = '0.0.0.0';
+
 module.exports = function (options) {
     if (!options) {
         throw new Error('options required');
@@ -23,6 +27,22 @@ module.exports = function (options) {
     var dest = options.dest;
 
     var ignored = options.ignored || /(?:^|[\/\\])(?:\.(?![\/\\]|$)|node_modules(?=[\/\\]|$))/;
+
+    var version = options.version;
+    var versionFile;
+    var versionVariable;
+
+    if (version) {
+        if (version instanceof Object) {
+            versionFile = version.file || DEFAULT_VERSION_FILE;
+            if (/\.js$/i.test(versionFile)) {
+                versionVariable = version.variable || DEFAULT_VERSION_VARIABLE;
+            }
+        } else {
+            versionFile = DEFAULT_VERSION_FILE;
+            versionVariable = DEFAULT_VERSION_VARIABLE;
+        }
+    }
 
     if (!(srcs instanceof Array)) {
         srcs = srcs ? [srcs] : [];
@@ -36,10 +56,63 @@ module.exports = function (options) {
         return path.resolve(src);
     });
 
-    var matcher = anymatch(srcs);
+    var fileMatcher = anymatch(srcs);
+    var versionFileMatcher;
+
+    if (version) {
+        versionFileMatcher = anymatch([versionFile]);
+    }
 
     if (typeof dest != 'string') {
         throw new Error('options.dest required');
+    }
+
+    var versionUpdateTimer;
+    updateVersion(true);
+
+    function updateVersion(init) {
+        if (!version) {
+            return;
+        }
+
+        clearTimeout(versionUpdateTimer);
+
+        if (!init) {
+            versionUpdateTimer = setTimeout(process, 500);
+        } else {
+            process();
+        }
+
+        function process() {
+            var versionString;
+            var text;
+
+            if (fs.existsSync(versionFile)) {
+                text = fs.readFileSync(versionFile, 'utf-8');
+                var groups = text.match(/((?:\d+\.)+)(\d+)/);
+                if (groups) {
+                    versionString = groups[1] + (Number(groups[2]) + (init ? 0 : 1));
+                }
+            }
+
+            if (!versionString) {
+                versionString = DEFAULT_INITIAL_VERSION;
+            }
+
+            var output;
+            if (versionVariable) {
+                output = 'var ' + versionVariable + ' = \'' + versionString + '\';';
+            } else {
+                output = versionString;
+            }
+
+            if (text == output) {
+                return;
+            }
+
+            fs.writeFileSync(versionFile, output);
+            processCopy(versionFile);
+        }
     }
 
     var cwd = process.cwd();
@@ -60,6 +133,8 @@ module.exports = function (options) {
         watcher
             .on('add', function(filePath) {
                 if (matchSrc(filePath)) {
+                    updateVersion();
+
                     if (watcherReady) {
                         processCopy(filePath);
                     } else {
@@ -70,11 +145,13 @@ module.exports = function (options) {
             })
             .on('change', function(filePath) {
                 if (matchSrc(filePath)) {
+                    updateVersion();
                     processCopy(filePath);
                 }
             })
             .on('unlink', function(filePath) {
                 if (matchSrc(filePath)) {
+                    updateVersion();
                     processDelete(filePath);
                 }
             })
@@ -101,7 +178,8 @@ module.exports = function (options) {
     }
 
     function matchSrc(filePath) {
-        return matcher(path.resolve(filePath));
+        var resolvedPath = path.resolve(filePath);
+        return !versionFileMatcher(resolvedPath) && fileMatcher(resolvedPath);
     }
 
     function processCopy(filePath) {
